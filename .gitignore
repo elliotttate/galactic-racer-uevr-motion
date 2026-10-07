@@ -1,0 +1,13 @@
+/build/
+/dist/
+/release/
+/validation/
+/PluginsData/
+__pycache__/
+*.pyc
+*.zip
+*.dll
+*.pdb
+*.log
+*.user
+.vs/

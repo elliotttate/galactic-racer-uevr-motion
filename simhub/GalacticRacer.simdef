@@ -1,0 +1,195 @@
+{
+  "TelemetryBehaviour": {
+    "GameFamily": 1,
+    "DefaultMaxSpeed": 350.0,
+    "HasRumbleStripsContactSurface": false,
+    "AllowGimbleLockSanitizer": false
+  },
+  "TelemetryDefinition": {
+    "LayoutMajorVersion": 1,
+    "LayoutMinorVersion": 0,
+    "ProtocolVersion": 1,
+    "Fields": [
+      {
+        "FieldType": "YawDegrees",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "PitchDegrees",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "RollDegrees",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "YawRateDegreesPerSecond",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "PitchRateDegreesPerSecond",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "RollRateDegreesPerSecond",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "LocalSurgeMs2",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "LocalSwayMs2",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "LocalHeaveMs2",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "LocalVelocityForwardMps",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "LocalVelocityLateralMps",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "LocalVelocityUpMps",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "VehiclePositionNorth",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "VehiclePositionEast",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "VehiclePositionUp",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "SpeedKmh",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "GroundSpeedKmh",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "EngineRpm",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "Throttle",
+        "TypeName": "StandardField"
+      },
+      {
+        "FieldType": "Brake",
+        "TypeName": "StandardField"
+      },
+      {
+        "Name": "TimestampMS",
+        "Comment": "Game tick count timestamp in milliseconds",
+        "BinaryType": 6,
+        "TypeName": "CustomTelemetryField"
+      },
+      {
+        "Name": "DeltaTimeSeconds",
+        "Comment": "Physics delta time in seconds",
+        "BinaryType": 8,
+        "TypeName": "CustomTelemetryField"
+      },
+      {
+        "Name": "SpeedMps",
+        "Comment": "Vehicle speed in meters per second",
+        "BinaryType": 8,
+        "TypeName": "CustomTelemetryField"
+      },
+      {
+        "Name": "SpeedMph",
+        "Comment": "Vehicle speed in miles per hour",
+        "BinaryType": 8,
+        "TypeName": "CustomTelemetryField"
+      },
+      {
+        "Name": "EngineRpmRatio",
+        "Comment": "Current RPM divided by engine max RPM, 0-1",
+        "BinaryType": 8,
+        "TypeName": "CustomTelemetryField"
+      },
+      {
+        "Name": "Steering",
+        "Comment": "Steering input, -1 left to +1 right",
+        "BinaryType": 8,
+        "TypeName": "CustomTelemetryField"
+      },
+      {
+        "Name": "GForceLateral",
+        "Comment": "Local lateral acceleration in G",
+        "BinaryType": 8,
+        "TypeName": "CustomTelemetryField"
+      },
+      {
+        "Name": "GForceVertical",
+        "Comment": "Local vertical acceleration in G",
+        "BinaryType": 8,
+        "TypeName": "CustomTelemetryField"
+      },
+      {
+        "Name": "GForceLongitudinal",
+        "Comment": "Local longitudinal acceleration in G",
+        "BinaryType": 8,
+        "TypeName": "CustomTelemetryField"
+      },
+      {
+        "Name": "BoostActive",
+        "Comment": "Boost currently active flag, 0 or 1",
+        "BinaryType": 2,
+        "TypeName": "CustomTelemetryField"
+      },
+      {
+        "Name": "BoostStarted",
+        "Comment": "One-packet boost started event flag",
+        "BinaryType": 2,
+        "TypeName": "CustomTelemetryField"
+      },
+      {
+        "Name": "BoostEnded",
+        "Comment": "One-packet boost ended event flag",
+        "BinaryType": 2,
+        "TypeName": "CustomTelemetryField"
+      },
+      {
+        "Name": "Airborne",
+        "Comment": "VehicleState.IsInAir flag, 0 or 1",
+        "BinaryType": 2,
+        "TypeName": "CustomTelemetryField"
+      },
+      {
+        "Name": "LandingEvent",
+        "Comment": "One-packet landing event flag",
+        "BinaryType": 2,
+        "TypeName": "CustomTelemetryField"
+      }
+    ]
+  },
+  "GameSignature": 3846173217,
+  "TelemetrySignature": 3962996085,
+  "Name": "STAR WARS Galactic Racer (UEVR)",
+  "UniqueId": "84171ddf-ddac-4be5-9da9-5a7ffbd77b40",
+  "DefaultUDPPort": 20778,
+  "DetectionProcesses": [
+    {
+      "ProcessName": "SWGR-Win64-Shipping",
+      "FileChecks": []
+    }
+  ],
+  "SimStartCommand": null,
+  "SimStartArguments": null,
+  "UseExtractorProcess": false,
+  "ExtractorProcessCommand": null,
+  "IconPath": null
+}
