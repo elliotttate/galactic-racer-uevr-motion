@@ -1,7 +1,10 @@
 #include "Telemetry.hpp"
 #include "SimHub.hpp"
+#include "Srs.hpp"
 #include <cmath>
 #include <cstdlib>
+#include <fstream>
+#include <cstring>
 #include <iostream>
 #include <limits>
 using namespace gr;
@@ -45,5 +48,30 @@ int main(){
     check(sizeof(packet)==188&&packet.GameSignature==0xE53FF221&&packet.TelemetrySignature==0xEC368575,"generated SimHub contract");
     check(packet.PitchDegrees==-30&&packet.LocalSwayMs2==2&&packet.LocalHeaveMs2==3&&packet.LocalSurgeMs2==4,"SimHub standard axes and pitch sign");
     check(packet.PacketsCounter==3&&packet.SessionId==2&&packet.SessionTimeSeconds==4,"SimHub header counters");
+    // SRS API v103 packet: layout, header, units and field mapping.
+    {
+        Frame g{};g.SpeedMps=12.5f;g.RPM=3000;g.RPMRatio=0.5f;g.VehicleArchetype=7;
+        g.PitchDegrees=10;g.RollDegrees=-20;g.YawDegrees=30;
+        g.GForceLateral=0.5f;g.GForceVertical=1.25f;g.GForceLongitudinal=-0.75f;
+        g.LocalVelocityZ=40;g.Steering=-0.5f;
+        auto q=srs_packet(g);
+        check(sizeof(q)==244,"SRS packet is 244 bytes");
+        check(std::memcmp(q.Api,"srs",3)==0&&q.Version==103,"SRS header and version");
+        check(std::strcmp(q.Game,"STAR WARS Galactic Racer")==0&&std::strcmp(q.Vehicle,"Archetype 7")==0&&q.Location[0]==0,"SRS names");
+        check(near(q.Speed,12.5)&&near(q.Rpm,3000)&&near(q.MaxRpm,6000)&&q.Gear==0,"SRS speed, rpm, max rpm, gear");
+        check(near(q.Pitch,10)&&near(q.Roll,-20)&&near(q.Yaw,30),"SRS angles in degrees");
+        check(near(q.LateralAcceleration,0.5)&&near(q.VerticalAcceleration,1.25)&&near(q.LongitudinalAcceleration,-0.75),"SRS accelerations in G");
+        check(near(q.LongitudinalVelocity,40)&&near(q.LateralVelocity,0),"SRS velocities");
+        check(near(q.SteeringWheelAngle,-50),"SRS steering range");
+        check(q.SuspensionFrontLeft==0&&q.TerrainRearRight==0,"SRS unused channels are zero");
+        Frame z{};z.RPMRatio=0;z.RPM=5;check(srs_packet(z).MaxRpm==0,"SRS max rpm without ratio");
+        Frame n=neutral(g,true);auto nq=srs_packet(n);
+        check(nq.Pitch==0&&nq.Roll==0&&nq.Yaw==0&&nq.LateralAcceleration==0&&nq.VerticalAcceleration==0&&nq.LongitudinalAcceleration==0,"SRS neutral frame has no motion");
+        // Dump a known packet so an external test can decode it with SRS's own parser.
+        if(const char* dump=std::getenv("SRS_PACKET_DUMP")){
+            std::ofstream out(dump,std::ios::binary);check(static_cast<bool>(out),"open SRS dump");
+            out.write(reinterpret_cast<const char*>(&q),sizeof(q));
+        }
+    }
     std::cout<<"All motion sampler/protocol tests passed. Frame="<<sizeof(Frame)<<" SharedMemory="<<sizeof(SharedMemory)<<'\n';
 }
