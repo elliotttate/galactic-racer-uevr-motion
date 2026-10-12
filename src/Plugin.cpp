@@ -4,6 +4,7 @@
 #include "uevr/Plugin.hpp"
 #include "Telemetry.hpp"
 #include "SimHub.hpp"
+#include "Srs.hpp"
 #include <atomic>
 #include <chrono>
 #include <cmath>
@@ -142,7 +143,7 @@ double setting(const std::map<std::string,std::string>& v,const char* key,double
 class GalacticRacerMotion final:public uevr::Plugin {
     std::filesystem::path profile;
     gr::Settings settings;gr::Sampler sampler;
-    Feed hub{true,"127.0.0.1",20777,60},tools{true,"127.0.0.1",4123,100},external{true,"127.0.0.1",20778,120};
+    Feed hub{true,"127.0.0.1",20777,60},tools{true,"127.0.0.1",4123,100},external{true,"127.0.0.1",20778,120},srs{true,"127.0.0.1",33001,60};
     std::atomic_bool enabled{true};bool sharedEnabled{true};
     HANDLE mapping{};gr::SharedMemory* shared{};
     std::mutex mutex;gr::Frame latest{};
@@ -156,8 +157,8 @@ class GalacticRacerMotion final:public uevr::Plugin {
         std::ofstream out(profile/L"galactic_racer_motion_status.json");
         out<<"{\"samples\":"<<samples.load()<<",\"validSamples\":"<<validSamples.load()
            <<",\"simHubPackets\":"<<hub.sent<<",\"simToolsPackets\":"<<tools.sent
-           <<",\"simHubExternalPackets\":"<<external.sent
-           <<",\"udpErrors\":"<<hub.errors+tools.errors+external.errors<<",\"sharedMemory\":"<<(shared?"true":"false")
+           <<",\"simHubExternalPackets\":"<<external.sent<<",\"srsPackets\":"<<srs.sent
+           <<",\"udpErrors\":"<<hub.errors+tools.errors+external.errors+srs.errors<<",\"sharedMemory\":"<<(shared?"true":"false")
            <<",\"frame\":"<<gr::json(f)<<"}";
     }
     void publish(gr::Frame f,uint64_t now,uint64_t session,double seconds) {
@@ -172,6 +173,10 @@ class GalacticRacerMotion final:public uevr::Plugin {
         if(external.enabled) {
             auto packet=gr::external_packet(f,emitterId,session,external.sent+1,seconds);
             external.send(std::string(reinterpret_cast<const char*>(&packet),sizeof(packet)),now);
+        }
+        if(srs.enabled) {
+            auto packet=gr::srs_packet(f);
+            srs.send(std::string(reinterpret_cast<const char*>(&packet),sizeof(packet)),now);
         }
         if(now-lastStatus>=1000){status(f);lastStatus=now;}
     }
@@ -192,7 +197,7 @@ class GalacticRacerMotion final:public uevr::Plugin {
     }
 public:
     void stop_live() {
-        enabled=false;stop=true;if(worker.joinable())worker.join();hub.close();tools.close();external.close();
+        enabled=false;stop=true;if(worker.joinable())worker.join();hub.close();tools.close();external.close();srs.close();
         if(shared)UnmapViewOfFile(shared);if(mapping)CloseHandle(mapping);shared=nullptr;mapping=nullptr;
     }
     ~GalacticRacerMotion() override {stop_live();}
@@ -207,7 +212,7 @@ public:
             f.port=static_cast<int>(setting(cfg,(prefix+"Port").c_str(),f.port,1,65535));
             f.hz=static_cast<int>(setting(cfg,(prefix+"RateHz").c_str(),f.hz,1,240));
             if(cfg.contains(prefix+"Ip"))f.ip=cfg.at(prefix+"Ip");};
-        feed(hub,"SimHub");feed(tools,"SimTools");feed(external,"SimHubExternal");
+        feed(hub,"SimHub");feed(tools,"SimTools");feed(external,"SimHubExternal");feed(srs,"Srs");
         settings.smoothingHz=setting(cfg,"AccelerationSmoothingHz",20,0,120);
         settings.maxAccelerationG=setting(cfg,"MaxAccelerationG",10,0.1,100);
         settings.maxAngularSpeedDeg=setting(cfg,"MaxAngularSpeedDeg",720,1,3600);
@@ -219,8 +224,8 @@ public:
         latest.StructSize=sizeof(latest);
         if(!enabled){API::get()->log_info("[GR Motion] Disabled in configuration");return;}
         WSADATA wsa{};
-        if(WSAStartup(MAKEWORD(2,2),&wsa)==0){hub.open();tools.open();external.open();}
-        else {hub.enabled=false;tools.enabled=false;external.enabled=false;API::get()->log_error("[GR Motion] WSAStartup failed");}
+        if(WSAStartup(MAKEWORD(2,2),&wsa)==0){hub.open();tools.open();external.open();srs.open();}
+        else {hub.enabled=false;tools.enabled=false;external.enabled=false;srs.enabled=false;API::get()->log_error("[GR Motion] WSAStartup failed");}
         if(sharedEnabled) {
             mapping=CreateFileMappingW(INVALID_HANDLE_VALUE,nullptr,PAGE_READWRITE,0,sizeof(gr::SharedMemory),L"Local\\GalacticRacerTelemetryV1");
             if(mapping)shared=static_cast<gr::SharedMemory*>(MapViewOfFile(mapping,FILE_MAP_ALL_ACCESS,0,0,sizeof(gr::SharedMemory)));
@@ -228,7 +233,7 @@ public:
         }
         emitterId=(GetTickCount64()<<32)^GetCurrentProcessId();sessionId=emitterId;
         worker=std::thread([this]{run();});
-        API::get()->log_info("[GR Motion] v1.0.0 initialized; SimHub=%s:%d SimTools=%s:%d shared=%d",hub.ip.c_str(),hub.port,tools.ip.c_str(),tools.port,shared!=nullptr);
+        API::get()->log_info("[GR Motion] v1.0.0 initialized; SimHub=%s:%d SimTools=%s:%d SRS=%s:%d shared=%d",hub.ip.c_str(),hub.port,tools.ip.c_str(),tools.port,srs.ip.c_str(),srs.port,shared!=nullptr);
     }
     void on_post_engine_tick(API::UGameEngine*,float dt) override {
         if(!enabled||!initialized)return;

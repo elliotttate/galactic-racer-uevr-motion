@@ -27,6 +27,7 @@ camera script works alongside it.
 | SimHub UDPConnector JSON | `127.0.0.1:20777` | `SimHub*` |
 | SimHub External Sim binary | `127.0.0.1:20778`, 188 bytes | `SimHubExternal*` |
 | SimTools v3 generic UDP | `127.0.0.1:4123` | `SimTools*` |
+| Sim Racing Studio API v103 | `127.0.0.1:33001`, 244 bytes | `Srs*` |
 | Windows shared memory | `Local\GalacticRacerTelemetryV1` | `SharedMemoryEnable` |
 
 For SimHub's motion addon, select **STAR WARS Galactic Racer (UEVR)** from
@@ -43,6 +44,8 @@ For SimTools, use the same v3 generic UDP game engine format as Fox3 on port
 ```text
 S~Roll:...:Pitch:...:Yaw:...:RollSpeed:...:PitchSpeed:...:YawSpeed:...:Vertical:...:Lateral:...:Longitudinal:...~E
 ```
+
+For [Sim Racing Studio](https://www.simracingstudio.com) (SRS), the plugin sends its UDP API version 103 packet to port 33001, which is the default port of SRS. SRS shows it as the "API" game with the game name "STAR WARS Galactic Racer". The packet uses speed in m/s, angles in degrees, and accelerations in G, using the same axis signs as the other outputs (flip any of them with `PitchSign`, `RollSign`, ...). Gear, suspension travel and wheel terrain have no source in this game and are sent as zero, `lateral_velocity` is zero, steering is scaled to +/-100, and `max_rpm` is derived from RPM and the RPM ratio. This output has not been tested in the game with a real SRS setup; expect to tune the axis signs and gains in SRS. Set `SrsEnable = 0` to turn it off. The packet layout is defined in `src/Srs.hpp`.
 
 For the legacy SimHub JSON route, configure the UDPConnector receiver for
 20777. These JSON packets expose the motion properties; they do not themselves
